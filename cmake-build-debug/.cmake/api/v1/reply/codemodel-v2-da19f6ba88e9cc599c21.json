@@ -1,0 +1,69 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.22"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "TWMailerBasic",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "TWMailerClient::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-TWMailerClient-Debug-46544e521fc4d043d0b5.json",
+					"name" : "TWMailerClient",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "TWMailerServer::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-TWMailerServer-Debug-6c48e57f1d77ea11f33b.json",
+					"name" : "TWMailerServer",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/mnt/c/Users/User/Documents/GitHub/Grundlagen verteilter Systeme Labor/TWMailerPro/cmake-build-debug",
+		"source" : "/mnt/c/Users/User/Documents/GitHub/Grundlagen verteilter Systeme Labor/TWMailerPro"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}

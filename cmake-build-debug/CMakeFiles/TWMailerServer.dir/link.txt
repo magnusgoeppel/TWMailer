@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/TWMailerServer.dir/twmailer-server.cpp.o -o TWMailerServer 

@@ -1,0 +1,4 @@
+/mnt/c/Users/User/Documents/GitHub/Grundlagen verteilter Systeme Labor/TWMailerPro/cmake-build-debug/CMakeFiles/TWMailerClient.dir
+/mnt/c/Users/User/Documents/GitHub/Grundlagen verteilter Systeme Labor/TWMailerPro/cmake-build-debug/CMakeFiles/TWMailerServer.dir
+/mnt/c/Users/User/Documents/GitHub/Grundlagen verteilter Systeme Labor/TWMailerPro/cmake-build-debug/CMakeFiles/edit_cache.dir
+/mnt/c/Users/User/Documents/GitHub/Grundlagen verteilter Systeme Labor/TWMailerPro/cmake-build-debug/CMakeFiles/rebuild_cache.dir
