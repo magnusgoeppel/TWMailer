@@ -142,6 +142,30 @@ TWMailerServer/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/TWMailerServer.dir/build.make CMakeFiles/TWMailerServer.dir/build
 .PHONY : TWMailerServer/fast
 
+test.o: test.cpp.o
+.PHONY : test.o
+
+# target to build an object file
+test.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TWMailerClient.dir/build.make CMakeFiles/TWMailerClient.dir/test.cpp.o
+.PHONY : test.cpp.o
+
+test.i: test.cpp.i
+.PHONY : test.i
+
+# target to preprocess a source file
+test.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TWMailerClient.dir/build.make CMakeFiles/TWMailerClient.dir/test.cpp.i
+.PHONY : test.cpp.i
+
+test.s: test.cpp.s
+.PHONY : test.s
+
+# target to generate assembly for a file
+test.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/TWMailerClient.dir/build.make CMakeFiles/TWMailerClient.dir/test.cpp.s
+.PHONY : test.cpp.s
+
 twmailer-client.o: twmailer-client.cpp.o
 .PHONY : twmailer-client.o
 
@@ -200,6 +224,9 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... TWMailerClient"
 	@echo "... TWMailerServer"
+	@echo "... test.o"
+	@echo "... test.i"
+	@echo "... test.s"
 	@echo "... twmailer-client.o"
 	@echo "... twmailer-client.i"
 	@echo "... twmailer-client.s"

@@ -6,6 +6,7 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <cstring>
+#include <sys/wait.h>
 
 using namespace std;
 
@@ -368,32 +369,67 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    // 1. Argument: Port (stoi: string -> int)
+    // 1. Argument: PORT
     int port = stoi(argv[1]);
-    // 2. Argument: Mail-Spool-Verzeichnis
+    // 2. Argument: MAIL-SPOOL-DIRECTORYNAME
     string directory = argv[2];
 
-    // Neuer Socket (AF_INET: IPv4, SOCK_STREAM: TCP, Protocol: Standardprotokoll)
+    // Socket erstellen für den Server
     int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-    // Speicher die IP und den Port des Servers
+
+    // Struktur für die Server-Adresse
     sockaddr_in serverAddr;
-    // Adresstyp: IPv4
+    // Setzt den Adresstyp auf IPv4
     serverAddr.sin_family = AF_INET;
-    // Port -> Netzwerk-Byte-Format
+    // Setzt den Port und konvertiert ihn in das richtige Format
     serverAddr.sin_port = htons(port);
-    // IP -> Netzwerk-Byte-Format
+    // Akzeptiert Verbindungen von allen IP-Adressen
     serverAddr.sin_addr.s_addr = INADDR_ANY;
 
-    // ServerSocket an die IP und den Port binden
+    // Bindet den Socket an die Server-Adresse und den Port
     bind(serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
-    // ServerSocket in den Listen-Modus versetzen, maximal 5 Verbindungen
+    // Startet den Server und wartet auf eingehende Verbindungen
     listen(serverSocket, 5);
 
+    // Endlosschleife für die Verarbeitung eingehender Verbindungen
+    while (true)
+    {
+        // Akzeptiere eine eingehende Verbindung und erstelle einen neuen Socket für den Client
+        int clientSocket = accept(serverSocket, NULL, NULL);
 
-    // Akzeptiere eine Verbindung
-    int clientSocket = accept(serverSocket, NULL, NULL);
-    // Verarbeite die Verbindung
-    handleClient(clientSocket, directory);
+        // Fehlermeldung, wenn die Verbindung nicht akzeptiert werden konnte
+        if (clientSocket == -1)
+        {
+            cerr << "Error in accepting client" << endl;
+            continue;
+        }
 
+        // Neuen Kindprozess erstellen
+        pid_t pid = fork();
+
+        // Fehlermeldung, wenn der Kindprozess nicht erstellt werden konnte
+        if (pid == -1)
+        {
+            cerr << "Fork failed" << endl;
+            close(clientSocket);
+        }
+        // Wenn der Kindprozess erstellt werden konnte
+        else if (pid == 0)
+        {
+            // Schließe den Server-Socket
+            close(serverSocket);
+            // Verarbeite die Anfragen des Clients
+            handleClient(clientSocket, directory);
+            // Beende den Kindprozess nach der Verarbeitung
+            exit(EXIT_SUCCESS);
+        }
+        else
+        {
+            // Schließe den Client-Socket
+            close(clientSocket);
+            // Warte auf die Beendigung des Kindprozesses, um Zombie-Prozesse zu vermeiden
+            wait(NULL);
+        }
+    }
     return 0;
 }
