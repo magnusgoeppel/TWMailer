@@ -129,6 +129,35 @@ int main(int argc, char* argv[])
         cout << "> ";
         getline(cin, command);
 
+        if (command == "LOGIN")
+        {
+            string username;
+            string password;
+
+            cout << "Username: ";
+            getline(cin, username);
+            cout << "Password: ";
+            getline(cin, password);
+
+            string loginCommand = "LOGIN\n" + username + "\n" + password + "\n";
+            send(clientSocket, loginCommand.c_str(), loginCommand.length(), 0);
+
+            string response = readLineFromSocket(clientSocket);
+
+            if(response == "OK")
+            {
+                cout << "Login successful." << endl << endl;
+            }
+            else if(response == "ERR")
+            {
+                cerr << "Login failed." << endl << endl;
+            }
+            else
+            {
+                cerr << "Unexpected response from server: " << response << endl << endl;
+            }
+        }
+
         if (command == "SEND")
         {
             // Sender, Empfänger, Betreff, Nachricht

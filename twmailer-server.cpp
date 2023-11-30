@@ -5,10 +5,54 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
-#include <cstring>
 #include <sys/wait.h>
+#include <ldap.h>
 
 using namespace std;
+
+bool authenticateWithLDAP(const string& username, const string& password)
+{
+    LDAP *ldap = nullptr;
+    int ldapVersion = LDAP_VERSION3;
+    int result;
+
+    // Initialize LDAP connection
+    result = ldap_initialize(&ldap, "ldap://ldap.technikum.wien.at:389");
+    if (result != LDAP_SUCCESS)
+    {
+        cerr << "LDAP-Fehler: " << ldap_err2string(result) << endl;
+        ldap_unbind_ext(ldap, nullptr, nullptr);
+        return false;
+    }
+    else
+    {
+        cout << "LDAP-Verbindung erfolgreich hergestellt." << endl;
+    }
+
+    // Set LDAP protocol version
+    ldap_set_option(ldap, LDAP_OPT_PROTOCOL_VERSION, &ldapVersion);
+
+    // Construct DN (Distinguished Name)
+    string dn = "uid=" + username + ",dc=technikum-wien,dc=at";
+
+    // Prepare credentials as a NULL-terminated string
+    struct berval cred;
+    cred.bv_val = const_cast<char*>(password.c_str());
+    cred.bv_len = password.length();
+
+    // Attempt to bind (authenticate) with the credentials
+    result = ldap_sasl_bind_s(ldap, dn.c_str(), LDAP_SASL_SIMPLE, &cred, nullptr, nullptr, nullptr);
+    if (result != LDAP_SUCCESS)
+    {
+        cerr << "LDAP-Fehler: " << ldap_err2string(result) << endl;
+        ldap_unbind_ext(ldap, nullptr, nullptr);
+        return false;
+    }
+
+    // Authentication successful
+    ldap_unbind_ext(ldap, nullptr, nullptr);
+    return true;
+}
 
 // Liest eine Zeile aus dem Socket
 string readLineFromSocket(int socket)
@@ -56,6 +100,22 @@ void handleClient(int clientSocket, string directory)
 
         command += "\n"; // Füge den Zeilenumbruch am Ende hinzu
 
+
+        if (command == "LOGIN\n")
+        {
+            string username = readLineFromSocket(clientSocket);
+            string password = readLineFromSocket(clientSocket);
+
+            if (authenticateWithLDAP(username, password))
+            {
+                // Mark session as authenticated
+                cout << "User " << username << " logged in." << endl;
+                cout << "Password: " << password << endl;
+                send(clientSocket, "OK\n", 3, 0);
+            } else {
+                send(clientSocket, "ERR\n", 4, 0);
+            }
+        }
         if (command == "SEND\n")
         {
             // Sender, Empfänger, Betreff, Nachricht

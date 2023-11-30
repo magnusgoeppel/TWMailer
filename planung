@@ -1,3 +1,8 @@
 1.  Fork oder Threads + Syncronisationsprobleme beheben.
 2. LOGIN
 3. Anpassen von SEND, LIST, READ, DEL, QUIT auf Session
+
+g++ -std=c++14 -Wall -o twmailer-server twmailer-server.cpp -lldap -llber
+g++ -std=c++14 -Wall -o twmailer-client twmailer-client.cpp
+./twmailer-server 8080 messages &
+./twmailer-client 127.0.0.1 8080
