@@ -12,46 +12,54 @@ using namespace std;
 
 bool authenticateWithLDAP(const string& username, const string& password)
 {
+    // Pointer auf LDAP-Verbindung
     LDAP *ldap = nullptr;
+    // LDAP-Version
     int ldapVersion = LDAP_VERSION3;
+    // Ergebnis der LDAP-Operation
     int result;
 
-    // Initialize LDAP connection
+    // Initialisiere die LDAP-Verbindung
     result = ldap_initialize(&ldap, "ldap://ldap.technikum.wien.at:389");
+
+    // Wenn die Initialisierung fehlgeschlagen ist
     if (result != LDAP_SUCCESS)
     {
-        cerr << "LDAP-Fehler: " << ldap_err2string(result) << endl;
+        cerr << "LDAP-Fehler1: " << ldap_err2string(result) << endl;
+        ldap_unbind_ext(ldap, nullptr, nullptr);
+        return false;
+    }
+
+    // Setze die LDAP-Version
+    ldap_set_option(ldap, LDAP_OPT_PROTOCOL_VERSION, &ldapVersion);
+
+    // Distinguished Name des Benutzers
+    string dn = "uid=" + username + ",ou=people,dc=technikum-wien,dc=at";
+
+    // Struct für die Anmeldeinformationen
+    struct berval cred;
+    // Setze das Passwort
+    cred.bv_val = (char*)password.c_str();
+    // Setze die Länge des Passworts
+    cred.bv_len = password.length();
+
+    // Authentifiziere den Benutzer
+    result = ldap_sasl_bind_s(ldap, dn.c_str(), LDAP_SASL_SIMPLE, &cred, nullptr, nullptr, nullptr);
+
+    // Überprüfe das Ergebnis der LDAP-Operation
+    if (result != LDAP_SUCCESS)
+    {
+        cerr << "LDAP-Fehler2: " << ldap_err2string(result) << endl;
+        // Schließe die LDAP-Verbindung
         ldap_unbind_ext(ldap, nullptr, nullptr);
         return false;
     }
     else
     {
-        cout << "LDAP-Verbindung erfolgreich hergestellt." << endl;
-    }
-
-    // Set LDAP protocol version
-    ldap_set_option(ldap, LDAP_OPT_PROTOCOL_VERSION, &ldapVersion);
-
-    // Construct DN (Distinguished Name)
-    string dn = "uid=" + username + ",dc=technikum-wien,dc=at";
-
-    // Prepare credentials as a NULL-terminated string
-    struct berval cred;
-    cred.bv_val = const_cast<char*>(password.c_str());
-    cred.bv_len = password.length();
-
-    // Attempt to bind (authenticate) with the credentials
-    result = ldap_sasl_bind_s(ldap, dn.c_str(), LDAP_SASL_SIMPLE, &cred, nullptr, nullptr, nullptr);
-    if (result != LDAP_SUCCESS)
-    {
-        cerr << "LDAP-Fehler: " << ldap_err2string(result) << endl;
+        // Schließe die LDAP-Verbindung
         ldap_unbind_ext(ldap, nullptr, nullptr);
-        return false;
+        return true;
     }
-
-    // Authentication successful
-    ldap_unbind_ext(ldap, nullptr, nullptr);
-    return true;
 }
 
 // Liest eine Zeile aus dem Socket
@@ -98,8 +106,8 @@ void handleClient(int clientSocket, string directory)
         // Empfange das Kommando
         command = readLineFromSocket(clientSocket);
 
-        command += "\n"; // Füge den Zeilenumbruch am Ende hinzu
-
+        // Füge den Zeilenumbruch am Ende hinzu
+        command += "\n";
 
         if (command == "LOGIN\n")
         {
@@ -112,7 +120,9 @@ void handleClient(int clientSocket, string directory)
                 cout << "User " << username << " logged in." << endl;
                 cout << "Password: " << password << endl;
                 send(clientSocket, "OK\n", 3, 0);
-            } else {
+            }
+            else
+            {
                 send(clientSocket, "ERR\n", 4, 0);
             }
         }

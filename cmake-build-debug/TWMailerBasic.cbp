@@ -126,9 +126,6 @@
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Unit filename="/mnt/c/Users/User/Documents/GitHub/Grundlagen verteilter Systeme Labor/TWMailerPro/test.cpp">
-			<Option target="TWMailerClient"/>
-		</Unit>
 		<Unit filename="/mnt/c/Users/User/Documents/GitHub/Grundlagen verteilter Systeme Labor/TWMailerPro/twmailer-client.cpp">
 			<Option target="TWMailerClient"/>
 		</Unit>

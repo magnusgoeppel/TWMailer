@@ -1,6 +1,4 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/TWMailerClient.dir/test.cpp.o"
-  "CMakeFiles/TWMailerClient.dir/test.cpp.o.d"
   "CMakeFiles/TWMailerClient.dir/twmailer-client.cpp.o"
   "CMakeFiles/TWMailerClient.dir/twmailer-client.cpp.o.d"
   "TWMailerClient"

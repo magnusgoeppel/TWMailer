@@ -8,7 +8,6 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/mnt/c/Users/User/Documents/GitHub/Grundlagen verteilter Systeme Labor/TWMailerPro/test.cpp" "CMakeFiles/TWMailerClient.dir/test.cpp.o" "gcc" "CMakeFiles/TWMailerClient.dir/test.cpp.o.d"
   "/mnt/c/Users/User/Documents/GitHub/Grundlagen verteilter Systeme Labor/TWMailerPro/twmailer-client.cpp" "CMakeFiles/TWMailerClient.dir/twmailer-client.cpp.o" "gcc" "CMakeFiles/TWMailerClient.dir/twmailer-client.cpp.o.d"
   )
 
