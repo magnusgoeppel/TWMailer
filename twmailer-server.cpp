@@ -10,56 +10,69 @@
 
 using namespace std;
 
-bool authenticateWithLDAP(const string& username, const string& password)
+bool authenticateWithLDAP(string username, string password)
 {
     // Pointer auf LDAP-Verbindung
-    LDAP *ldap = nullptr;
+    LDAP *ldap;
+    // URI des LDAP-Servers
+    const char *ldapUri = "ldap://ldap.technikum-wien.at:389";
     // LDAP-Version
     int ldapVersion = LDAP_VERSION3;
+
     // Ergebnis der LDAP-Operation
     int result;
 
     // Initialisiere die LDAP-Verbindung
-    result = ldap_initialize(&ldap, "ldap://ldap.technikum.wien.at:389");
+    result = ldap_initialize(&ldap, ldapUri);
 
-    // Wenn die Initialisierung fehlgeschlagen ist
     if (result != LDAP_SUCCESS)
     {
-        cerr << "LDAP-Fehler1: " << ldap_err2string(result) << endl;
+        cerr << "Fehler beim Initialisieren der LDAP-Verbindung: " << ldap_err2string(result) << endl;
         ldap_unbind_ext(ldap, nullptr, nullptr);
         return false;
     }
 
     // Setze die LDAP-Version
-    ldap_set_option(ldap, LDAP_OPT_PROTOCOL_VERSION, &ldapVersion);
+    result = ldap_set_option(ldap, LDAP_OPT_PROTOCOL_VERSION, &ldapVersion);
+
+    if(result != LDAP_OPT_SUCCESS)
+    {
+        cerr << "Fehler beim Setzen der LDAP-Protokollversion: " << ldap_err2string(result) << endl;
+        ldap_unbind_ext(ldap, nullptr, nullptr);
+        return false;
+    }
+
+    // Starte TLS
+    result = ldap_start_tls_s(ldap, nullptr, nullptr);
+
+    if (result != LDAP_SUCCESS)
+    {
+        cerr << "Fehler beim Starten von TLS: " << ldap_err2string(result) << endl;
+        ldap_unbind_ext(ldap, nullptr, nullptr);
+        return false;
+    }
 
     // Distinguished Name des Benutzers
     string dn = "uid=" + username + ",ou=people,dc=technikum-wien,dc=at";
 
     // Struct für die Anmeldeinformationen
     struct berval cred;
-    // Setze das Passwort
     cred.bv_val = (char*)password.c_str();
-    // Setze die Länge des Passworts
     cred.bv_len = password.length();
 
     // Authentifiziere den Benutzer
     result = ldap_sasl_bind_s(ldap, dn.c_str(), LDAP_SASL_SIMPLE, &cred, nullptr, nullptr, nullptr);
 
-    // Überprüfe das Ergebnis der LDAP-Operation
     if (result != LDAP_SUCCESS)
     {
-        cerr << "LDAP-Fehler2: " << ldap_err2string(result) << endl;
-        // Schließe die LDAP-Verbindung
+        cerr << "Fehler beim Anmelden des Benutzers: " << ldap_err2string(result) << endl;
         ldap_unbind_ext(ldap, nullptr, nullptr);
         return false;
     }
-    else
-    {
-        // Schließe die LDAP-Verbindung
-        ldap_unbind_ext(ldap, nullptr, nullptr);
-        return true;
-    }
+
+    // Schließe die LDAP-Verbindung
+    ldap_unbind_ext(ldap, nullptr, nullptr);
+    return true;
 }
 
 // Liest eine Zeile aus dem Socket
