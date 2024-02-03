@@ -1,0 +1,137 @@
+// Testprotokoll
+g++ -o twmailer-server twmailer-server.cpp -lldap -llber
+g++ -o twmailer-client twmailer-client.cpp
+./twmailer-server 8080 messages &
+./twmailer-client 127.0.0.1 8080
+
+> LOGIN
+Username: test
+Password: 1234
+Login successful
+
+> SEND
+Receiver: if22b248
+Subject (max. 80 chars): Test
+Message (end with a single '.'):
+Das ist ein Test.
+Test.
+.
+Message sent successfully
+
+> SEND
+Receiver: if22b248
+Subject (max. 80 chars): Test2
+Message (end with a single '.'):
+Das ist der Test2.
+.
+Message sent successfully
+
+> LIST
+0
+
+> READ
+Message number: 1
+Message does not exist
+
+> DEL
+Message number: 1
+Message could not be deleted.
+
+> QUIT
+test logged out.
+
+> LOGIN
+Username: if22b248
+Password: ********
+Login successful
+
+> LOGIN
+You are already logged in.
+
+> SEND
+Receiver: test
+Subject (max. 80 chars): For Testuser
+Message (end with a single '.'):
+Das ist eine Nachricht für den Testuser.
+.
+Message sent successfully
+
+> LIST
+1. Test
+2. Test2
+
+> READ
+Message number: 1
+From: test
+Subject: Test
+Message:
+Das ist ein Test.
+Test.
+
+> READ
+Message number: 2
+From: test
+Subject: Test2
+Message:
+Das ist der Test2.
+
+> DEL
+Message number: 2
+Message deleted successfully
+
+> DEL
+Message number: 1
+Message deleted successfully
+
+> QUIT
+if22b248 logged out
+
+> LOGIN
+Username: if22b248
+Password: 123
+Login failed
+
+> LOGIN
+Username: test
+Password: 123
+Login failed
+
+> LOGIN
+Username: test
+Password: 1235
+Login failed
+
+> LOGIN
+Username: test
+Password: 12345
+Timeout für 60 Sekunden
+Timeout für 59 Sekunden
+Timeout für 58 Sekunden
+Timeout für 57 Sekunden
+Timeout für 56 Sekunden
+Timeout für 55 Sekunden
+Timeout für 54 Sekunden
+...
+Timeout für 1 Sekunden
+Login failed
+
+> SEND
+You need to be logged in to send a message.
+
+> LIST
+You need to be logged in to list your messages.
+
+> READ
+You need to be logged in to read your messages.
+
+> DEL
+You need to be logged in to delete your messages.
+
+> START
+unknown command.
+
+^C(twmailer-client beendet)
+Fehler beim Empfangen von Daten oder Verbindung wurde geschlossen.
+Fehler beim Empfangen von Daten oder Verbindung wurde geschlossen.
+
+kill pid-twmailer-server

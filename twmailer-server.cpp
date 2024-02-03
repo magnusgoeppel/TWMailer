@@ -65,7 +65,6 @@ bool authenticateWithLDAP(string username, string password)
 
     if (result != LDAP_SUCCESS)
     {
-        cerr << "Fehler beim Anmelden des Benutzers: " << ldap_err2string(result) << endl;
         ldap_unbind_ext(ldap, nullptr, nullptr);
         return false;
     }
@@ -90,7 +89,7 @@ string readLineFromSocket(int socket)
 
         if (bytesRead <= 0)
         {
-            cerr << "Fehler beim Empfangen von Daten oder Verbindung geschlossen." << endl;
+            cerr << endl << "Fehler beim Empfangen von Daten oder Verbindung geschlossen.";
             break;
         }
         // Bei einem Zeilenumbruch wird das einlesen beendet
@@ -105,6 +104,120 @@ string readLineFromSocket(int socket)
     return result;
 }
 
+// Username: exampleUser, Login Versuche: 2
+void addToBlacklist(string username)
+{
+    string filename = "blacklist.txt";
+
+    // Verbindung zum Dateisystem
+    ifstream inFile(filename);
+    vector<string> lines;
+    string line;
+    bool userFound = false;
+
+    if (inFile.is_open())
+    {
+        // Gehe durch jede Zeile der Datei
+        while (getline(inFile, line))
+        {
+            // Wenn der Benutzer gefunden wird, aktualisiere die Anzahl der Login-Versuche
+            if (line.find("Username: " + username) != string::npos)
+            {
+                // Finde die Position des letzten Leerzeichens vor der Anzahl der Login-Versuche
+                int lastSpacePos = line.find_last_of(" ");
+
+                // Wenn die Position gefunden wurde
+                if (lastSpacePos != string::npos)
+                {
+                    // Extrahiere die Anzahl der Login-Versuche
+                    int loginAttempts = stoi(line.substr(lastSpacePos + 1)) + 1;
+
+                    // Ersetze die Zeile mit der neuen Anzahl von Login-Versuchen
+                    line = "Username: " + username + ", Login Versuche: " + to_string(loginAttempts);
+                    userFound = true;
+                }
+            }
+            // Füge die Zeile zur Liste hinzu
+            lines.push_back(line);
+        }
+        inFile.close();
+    }
+    else
+    {
+        cerr << "Fehler beim Öffnen der Datei: " << filename << endl;
+        return;
+    }
+
+    // Wenn der Benutzer nicht gefunden wurde, füge ihn zur Liste hinzu
+    if (!userFound)
+    {
+        lines.push_back("Username: " + username + ", Login Versuche: 1");
+    }
+
+    // Überschreibe die Datei mit den aktualisierten Daten
+    ofstream outFile(filename);
+
+    if (outFile.is_open())
+    {
+        for (int i = 0; i < lines.size(); ++i)
+        {
+            outFile << lines[i] << "\n";
+        }
+        outFile.close();
+    }
+    else
+    {
+        cerr << "Fehler beim Öffnen der Datei: " << filename << endl;
+    }
+}
+
+bool checkForTimeout(string username)
+{
+    // Dateiname für die Blacklist
+    string filename = "blacklist.txt";
+
+    // Verbindung zum Dateisystem
+    ifstream inFile(filename);
+
+    // Wenn die Datei nicht geöffnet werden konnte
+    if(!inFile.is_open())
+    {
+        return false;
+    }
+
+    // Zeile
+    string line;
+
+    // Solange eine Zeile gelesen werden kann
+    while(getline(inFile, line))
+    {
+        // Wenn der Benutzer auf der Blacklist steht
+        if(line.find("Username: " + username) != string::npos)
+        {
+            // Wenn der Benutzer mehr als 3 Login-Versuche hat
+            if(stoi(line.substr(line.find("Login Versuche: ") + 16)) % 3 == 0)
+            {
+                // Schließe die Datei
+                inFile.close();
+                return true;
+            }
+        }
+    }
+    // Schließe die Datei
+    inFile.close();
+    return false;
+}
+
+void setTimeOut(string username)
+{
+    cout << endl << endl;
+
+    for (int i = 60; i > 0; i--)
+    {
+        cout << "Timeout für " << i << " Sekunden" << endl;
+        sleep(1);
+    }
+}
 
 void handleClient(int clientSocket, string directory)
 {
@@ -129,13 +242,16 @@ void handleClient(int clientSocket, string directory)
 
             if (authenticateWithLDAP(username, password))
             {
-                // Mark session as authenticated
-                cout << "User " << username << " logged in." << endl;
-                cout << "Password: " << password << endl;
                 send(clientSocket, "OK\n", 3, 0);
             }
             else
             {
+                addToBlacklist(username);
+
+                if(checkForTimeout(username))
+                {
+                    setTimeOut(username);
+                }
                 send(clientSocket, "ERR\n", 4, 0);
             }
         }
@@ -176,7 +292,6 @@ void handleClient(int clientSocket, string directory)
 
             // Verbindung zum Dateisystem
             ofstream outFile(filename, ios::app);
-
 
             // Wenn die Datei geöffnet werden konnte
             if (outFile.is_open())
@@ -259,13 +374,13 @@ void handleClient(int clientSocket, string directory)
             // Dateiname für die Nachrichten des Benutzers
             string filename = directory + "/" + username + ".txt";
 
+
             // Verbindung zum Dateisystem
             ifstream inFile(filename);
 
             // Wenn die Datei nicht geöffnet werden konnte
             if (!inFile.is_open())
             {
-                cerr << "Fehler beim Öffnen der Datei: " << filename << endl;
                 send(clientSocket, "ERR\n", 4, 0);
                 continue;
             }
@@ -429,13 +544,6 @@ void handleClient(int clientSocket, string directory)
 
             // Sende die Bestätigung an den Client
             send(clientSocket, "OK\n", 3, 0);
-        }
-        // Beende die Verbindung
-        else if (command == "QUIT\n")
-        {
-            // Schließe den Socket
-            close(clientSocket);
-            return;
         }
         else
         {

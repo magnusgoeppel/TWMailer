@@ -2,7 +2,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <unistd.h>
 
 using namespace std;
 
@@ -21,7 +20,7 @@ string readLineFromSocket(int socket)
 
         if (bytesRead <= 0)
         {
-            cerr << "Fehler beim Empfangen von Daten oder Verbindung geschlossen." << endl;
+            cerr << endl << "Fehler beim Empfangen von Daten oder Verbindung geschlossen.";
             break;
         }
         // Bei einem Zeilenumbruch wird das einlesen beendet
@@ -93,6 +92,21 @@ bool isValidUsername(const string str)
     return true;
 }
 
+// Löscht den Socket-Buffer
+void clearSocketBuffer(int clientSocket)
+{
+    char tempBuffer[1024];
+    int bytesRead;
+    do
+    {
+        // Versuche, Daten mit non-blocking call zu lesen
+        bytesRead = recv(clientSocket, tempBuffer, sizeof(tempBuffer), MSG_DONTWAIT);
+    }
+    // Wiederhole, bis keine Daten mehr gelesen werden
+    while (bytesRead > 0);
+}
+
+
 int main(int argc, char* argv[])
 {
     if (argc != 3)
@@ -122,6 +136,10 @@ int main(int argc, char* argv[])
 
     // Command
     string command;
+    // Flag für den Login
+    bool loggedIn = false;
+    // Benutzername
+    string username;
 
     // Bis das Programm beendet wird
     while (true)
@@ -131,13 +149,44 @@ int main(int argc, char* argv[])
 
         if (command == "LOGIN")
         {
-            string username;
+            if(loggedIn)
+            {
+                cerr << "You are already logged in." << endl << endl;
+                continue;
+            }
+
             string password;
 
             cout << "Username: ";
             getline(cin, username);
+
+            // Username darf nur aus (a-z) und (0-9) bestehen
+            if (username.length() > 8 || !isValidUsername(username))
+            {
+                if (username.length() > 8)
+                {
+                    cerr << "Username length exceeds 8 characters." << endl << endl;
+                }
+                else
+                {
+                    cerr << "Username contains invalid characters. Only (a-z, 0-9) are allowed." << endl << endl;
+                }
+                continue;
+            }
+
+            // Passwort wird nicht mehr angezeigt
             cout << "Password: ";
+            system("stty -echo");
             getline(cin, password);
+            system("stty echo");
+
+            // Hardcoded User zu Testzwecken
+            if(username == "test" && password == "1234")
+            {
+                cout << endl << "Login successful." << endl << endl;
+                loggedIn = true;
+                continue;
+            }
 
             string loginCommand = "LOGIN\n" + username + "\n" + password + "\n";
             send(clientSocket, loginCommand.c_str(), loginCommand.length(), 0);
@@ -146,42 +195,33 @@ int main(int argc, char* argv[])
 
             if(response == "OK")
             {
-                cout << "Login successful." << endl << endl;
+                cout << endl << "Login successful." << endl << endl;
+                loggedIn = true;
             }
             else if(response == "ERR")
             {
-                cerr << "Login failed." << endl << endl;
+                cerr << endl << "Login failed." << endl << endl;
+                clearSocketBuffer(clientSocket);
             }
             else
             {
-                cerr << "Unexpected response from server: " << response << endl << endl;
+                cerr << endl << "Unexpected response from server: " << response << endl << endl;
             }
         }
-
-        if (command == "SEND")
+        else if (command == "SEND")
         {
+            if(!loggedIn)
+            {
+                cerr << "You need to be logged in to send a message." << endl << endl;
+                continue;
+            }
+
             // Sender, Empfänger, Betreff, Nachricht
-            string sender;
             string receiver;
             string subject;
             string messageBody;
             string line;
 
-            cout << "Sender: ";
-            getline(cin, sender);
-
-            if (sender.length() > 8 || !isValidUsername(sender))
-            {
-                if (sender.length() > 8)
-                {
-                    cerr << "Sender length exceeds 8 characters." << endl << endl;
-                }
-                else
-                {
-                    cerr << "Sender contains invalid characters. Only (a-z, 0-9) are allowed." << endl << endl;
-                }
-                continue;
-            }
             cout << "Receiver: ";
             getline(cin, receiver);
 
@@ -220,8 +260,10 @@ int main(int argc, char* argv[])
                 }
                 messageBody += line + "\n";
             }
+            clearSocketBuffer(clientSocket);
+
             // Gesamte Nachricht
-            string fullMessage = "SEND\n" + sender + "\n" + receiver + "\n" + subject + "\n" + messageBody + ".\n";
+            string fullMessage = "SEND\n" + username + "\n" + receiver + "\n" + subject + "\n" + messageBody + ".\n";
             // Sendet der Nachricht an den Server
             send(clientSocket, fullMessage.c_str(), fullMessage.length(), 0);
 
@@ -242,21 +284,9 @@ int main(int argc, char* argv[])
         }
         else if (command == "LIST")
         {
-            // Aufzulistender Benutzer
-            string username;
-            cout << "Username: ";
-            getline(cin, username);
-
-            if (username.length() > 8 || !isValidUsername(username))
+            if(!loggedIn)
             {
-                if (username.length() > 8)
-                {
-                    cerr << "Receiver length exceeds 8 characters." << endl << endl;
-                }
-                else
-                {
-                    cerr << "Receiver contains invalid characters. Only (a-z, 0-9) are allowed." << endl << endl;
-                }
+                cerr << "You need to be logged in to list messages." << endl << endl;
                 continue;
             }
 
@@ -273,8 +303,14 @@ int main(int argc, char* argv[])
                 // String -> Integer
                 int count = stoi(countStr);
 
+                if(count == 0)
+                {
+                    cout << count << endl << endl;
+                    continue;
+                }
+
                 // Empfange und drucke die Betreffzeilen
-                for (int i = 0; i < count; i++)
+                for (int i = 0; i < count; ++i)
                 {
                     string subject = readLineFromSocket(clientSocket);
                     cout << i + 1 << ". " << subject << endl;
@@ -283,32 +319,19 @@ int main(int argc, char* argv[])
             }
             else
             {
-                cerr << "Invalid value for countStr: '" << countStr << "'" << endl << endl;
+                cerr << "Unexpected response from server: " << countStr << endl << endl;
             }
         }
         else if (command == "READ")
         {
-            // Nachrichtenempfänger
-            string username;
-            // Nachrichtnummer
-            int messageNumber;
-
-            // Einlesen des Benutzernamens
-            cout << "Username: ";
-            getline(cin, username);
-
-            if (username.length() > 8 || !isValidUsername(username))
+            if(!loggedIn)
             {
-                if (username.length() > 8)
-                {
-                    cerr << "Receiver length exceeds 8 characters." << endl << endl;
-                }
-                else
-                {
-                    cerr << "Receiver contains invalid characters. Only (a-z, 0-9) are allowed." << endl << endl;
-                }
+                cerr << "You need to be logged in to read messages." << endl << endl;
                 continue;
             }
+
+            // Nachrichtnummer
+            int messageNumber;
 
             // Einlesen der Nachrichtennummer
             cout << "Message Number: ";
@@ -351,25 +374,14 @@ int main(int argc, char* argv[])
         }
         else if (command == "DEL")
         {
-            // Nachrichtenempfänger und Nachrichtennummer
-            string username;
-            int messageNumber;
-
-            cout << "Username: ";
-            getline(cin, username);
-
-            if (username.length() > 8 || !isValidUsername(username))
+            if(!loggedIn)
             {
-                if (username.length() > 8)
-                {
-                    cerr << "Receiver length exceeds 8 characters." << endl << endl;
-                }
-                else
-                {
-                    cerr << "Receiver contains invalid characters. Only (a-z, 0-9) are allowed." << endl << endl;
-                }
+                cerr << "You need to be logged in to delete messages." << endl << endl;
                 continue;
             }
+
+            // Nachrichtennummer
+            int messageNumber;
 
             cout << "Message Number: ";
             cin >> messageNumber;
@@ -397,17 +409,13 @@ int main(int argc, char* argv[])
         }
         else if (command == "QUIT")
         {
-            // Sendet den "QUIT"-Befehl an den Server (5: Länge des Befehls, 0: keine Flags)
-            send(clientSocket, "QUIT\n", 5, 0);
-            break;
+            loggedIn = false;
+            cout << username << " logged out." << endl << endl;
         }
         else
         {
             cout << "Unknown command." << endl << endl;
         }
     }
-    // Schließt den Socket
-    close(clientSocket);
-
     return 0;
 }
