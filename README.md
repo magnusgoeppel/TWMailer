@@ -16,22 +16,14 @@ g++ -o twmailer-client twmailer-client.cpp
 g++ -o twmailer-server twmailer-server.cpp -lldap -llber
 ```
 
-### Einrichtung des Mail-Spool-Verzeichnisses:
-
-Erstellen Sie ein Verzeichnis, in dem der Server die E-Mail-Nachrichten speichern kann.
-
-```bash
-mkdir /pfad/zum/mail-spool
-```
-
 ### Server
 Starten Sie den Server mit dem folgenden Befehl:
 
 ```bash
-./twmailer-server <Port> <Mail-Spool-Verzeichnis>
+./twmailer-server <Port> messages
 ```
 - <Port>: Der Port, auf dem der Server laufen soll.
-- <Mail-Spool-Verzeichnis>: Der Pfad zum Verzeichnis, in dem die Nachrichten gespeichert werden.
+- `messages`: Das Verzeichnis, in dem die Nachrichten gespeichert werden. In diesem Fall wird das Verzeichnis messages als Speicherort für E-Mail-Nachrichten verwendet.
 
 ### Client
 Starten Sie den Client mit dem folgenden Befehl:
