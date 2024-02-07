@@ -1,4 +1,4 @@
-## TWMailer Client und Server
+## TWMailer
 
 ## Einführung
 Diese Anleitung beschreibt die Installation und Verwendung des TWMailer-Client- und Server-Programms. Der TWMailer ermöglicht es Benutzern, über einen Client mit einem Server zu interagieren, um sich anzumelden, Nachrichten zu senden, zu listen, zu lesen und zu löschen. Die Serveranwendung nutzt LDAP für die Authentifizierung und speichert Nachrichten in einem spezifizierten Verzeichnis.
