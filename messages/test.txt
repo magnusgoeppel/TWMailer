@@ -1,0 +1,12 @@
+From: alice
+Subject: Meeting Reminder
+Message: Reminder for our meeting tomorrow at 10 AM.
+----------------------------------------------------------------------
+From: bob
+Subject: Weekly Report
+Message: Attached is my report for this week.
+----------------------------------------------------------------------
+From: charlie
+Subject: Lunch?
+Message: Do you want to go for lunch today?
+----------------------------------------------------------------------
