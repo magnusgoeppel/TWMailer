@@ -15,7 +15,7 @@ bool authenticateWithLDAP(string username, string password)
     // Pointer auf LDAP-Verbindung
     LDAP *ldap;
     // URI des LDAP-Servers
-    const char *ldapUri = "ldap://ldap.technikum-wien.at:389";
+    const char *ldapUri = "IHRE_LDAP_URI";
     // LDAP-Version
     int ldapVersion = LDAP_VERSION3;
 
@@ -53,7 +53,7 @@ bool authenticateWithLDAP(string username, string password)
     }
 
     // Distinguished Name des Benutzers
-    string dn = "uid=" + username + ",ou=people,dc=technikum-wien,dc=at";
+    string dn = "uid=" + username + ",baseDN";
 
     // Struct für die Anmeldeinformationen
     struct berval cred;
