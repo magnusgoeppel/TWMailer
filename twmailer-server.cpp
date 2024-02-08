@@ -15,7 +15,7 @@ bool authenticateWithLDAP(string username, string password)
     // Pointer auf LDAP-Verbindung
     LDAP *ldap;
     // URI des LDAP-Servers
-    const char *ldapUri = "IHRE_LDAP_URI";
+    const char *ldapUri = "ldap://example.com:389";
     // LDAP-Version
     int ldapVersion = LDAP_VERSION3;
 
@@ -52,8 +52,10 @@ bool authenticateWithLDAP(string username, string password)
         return false;
     }
 
+    string baseDN = "dc=example,dc=com";
+    
     // Distinguished Name des Benutzers
-    string dn = "uid=" + username + ",baseDN";
+    string dn = "uid=" + username + "," + baseDN;
 
     // Struct für die Anmeldeinformationen
     struct berval cred;
