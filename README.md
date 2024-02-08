@@ -7,7 +7,7 @@ Diese Anleitung beschreibt die Installation und Verwendung des TWMailer-Client- 
 - Linux-Betriebssystem
 - g++ Compiler
 - LDAP-Bibliotheken für C++
-
+- Ein konfigurierter und erreichbarer LDAP-Server (sonst ist der Login nur mit dem Testuser möglich)
 
 ## Installation
 ### Kompilieren des Clients und des Servers:
@@ -16,7 +16,16 @@ g++ -o twmailer-client twmailer-client.cpp
 g++ -o twmailer-server twmailer-server.cpp -lldap -llber
 ```
 
-### Server
+## Server Konfiguration
+Vor dem Starten des Servers müssen Sie die LDAP-Server-URI und die baseDN direkt im Code des twmailer-server konfigurieren. Öffnen Sie twmailer-server.cpp in einem Texteditor und setzen Sie die entsprechenden Werte für Ihre Umgebung:
+
+```bash
+// Beispiel für die Konfiguration
+18 const char *ldapUri = "ldap://example.com:389";
+55 string baseDN = "dc=example,dc=com";
+```
+
+### Server starten
 Starten Sie den Server mit dem folgenden Befehl:
 
 ```bash
