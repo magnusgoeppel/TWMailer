@@ -1,54 +1,53 @@
 ## TWMailer
 
-## Einführung
-Diese Anleitung beschreibt die Installation und Verwendung des TWMailer-Client- und Server-Programms. Der TWMailer ermöglicht es Benutzern, über einen Client mit einem Server zu interagieren, um sich anzumelden, Nachrichten zu senden, zu listen, zu lesen und zu löschen. Die Serveranwendung nutzt LDAP für die Authentifizierung und speichert Nachrichten in einem spezifizierten Verzeichnis.
+## Introduction
+This guide describes the installation and use of the TWMailer client and server programs. TWMailer allows users to interact with a server through a client to log in, send messages, list messages, read messages, and delete messages. The server application uses LDAP for authentication and stores messages in a specified directory.
 
-## Voraussetzungen
-- Linux-Betriebssystem
-- g++ Compiler
-- LDAP-Bibliotheken für C++
-- Ein konfigurierter und erreichbarer LDAP-Server (sonst ist der Login nur mit dem Testuser möglich)
+## Prerequisites
+- Linux operating system
+- g++ compiler
+- LDAP libraries for C++
+- A configured and reachable LDAP server (otherwise, login is only possible with the test user)
 
 ## Installation
-### Kompilieren des Clients und des Servers:
+### Compiling the Client and Server:
 ```bash
 g++ -o twmailer-client twmailer-client.cpp 
 g++ -o twmailer-server twmailer-server.cpp -lldap -llber
 ```
 
-## Server Konfiguration
-Vor dem Starten des Servers müssen Sie die LDAP-Server-URI und die baseDN direkt im Code des twmailer-server konfigurieren. Öffnen Sie twmailer-server.cpp in einem Texteditor und setzen Sie die entsprechenden Werte für Ihre Umgebung:
+## Server Configuration
+Before starting the server, you must configure the LDAP server URI and the baseDN directly in the code of the `twmailer-server`. Open `twmailer-server.cpp` in a text editor and set the appropriate values for your environment:
 
-```bash
-// Beispiel für die Konfiguration
+```cpp
+// Example configuration
 18 const char *ldapUri = "ldap://example.com:389";
 55 string baseDN = "dc=example,dc=com";
 ```
 
-### Server starten
-Starten Sie den Server mit dem folgenden Befehl:
+### Starting the Server
+Start the server with the following command:
 
 ```bash
 ./twmailer-server <Port> messages
 ```
-- <Port>: Der Port, auf dem der Server laufen soll.
-- `messages`: Das Verzeichnis, in dem die Nachrichten gespeichert werden. In diesem Fall wird das Verzeichnis messages als Speicherort für E-Mail-Nachrichten verwendet.
+- `<Port>`: The port on which the server should run.
+- `messages`: The directory where the messages are stored. In this case, the `messages` directory is used as the storage location for email messages.
 
 ### Client
-Starten Sie den Client mit dem folgenden Befehl:
+Start the client with the following command:
 
 ```bash
 ./twmailer-client <Server-IP> <Port>
 ```
-- <Server-IP>: Die IP-Adresse des Servers.
-- <Port>: Der Port, auf dem der Server läuft.
+- `<Server-IP>`: The IP address of the server.
+- `<Port>`: The port on which the server is running.
 
-### Nach dem Start des Clients können Sie die folgenden Befehle verwenden:
+### After starting the client, you can use the following commands:
 
-- LOGIN: Melden Sie sich mit Ihrem Benutzernamen und Passwort an. Für Testzwecke ist ein Benutzer hartcodiert: Benutzername `test` und Passwort `1234`.
-- SEND: Senden Sie eine Nachricht.
-- LIST: Listet alle Ihre Nachrichten auf.
-- READ: Lesen Sie eine spezifische Nachricht.
-- DEL: Löschen Sie eine spezifische Nachricht.
-- QUIT: Melden Sie sich ab.
-
+- **LOGIN**: Log in with your username and password. For testing purposes, a user is hardcoded: Username `test` and password `1234`.
+- **SEND**: Send a message.
+- **LIST**: List all your messages.
+- **READ**: Read a specific message.
+- **DEL**: Delete a specific message.
+- **QUIT**: Log out.
